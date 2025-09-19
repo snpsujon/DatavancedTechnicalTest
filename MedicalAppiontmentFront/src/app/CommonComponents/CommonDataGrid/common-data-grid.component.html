@@ -1,0 +1,88 @@
+<dx-data-grid
+  id="gridContainer"
+  [allowColumnReordering]="true"
+  [allowColumnResizing]="true"
+  [columnAutoWidth]="true"
+  [filterRow]="{ visible: true }"
+  [headerFilter]="{ visible: true }"
+  [customizeColumns]="customizeColumns"
+  [dataSource]="service.dataList"
+  [keyExpr]="'index'"
+  [width]="'100%'"
+  [showBorders]="true"
+  [showRowLines]="true"
+  [rowAlternationEnabled]="true"
+>
+  <dxo-load-panel [textContent]="'center'" [enabled]="true"></dxo-load-panel>
+
+  <dxo-paging [pageSize]="10"></dxo-paging>
+  <dxo-pager
+    [visible]="service.isPagger"
+    [allowedPageSizes]="allowedPageSizes"
+    [displayMode]="displayMode"
+    [showPageSizeSelector]="showPageSizeSelector"
+    [showInfo]="showInfo"
+    [showNavigationButtons]="showNavButtons"
+  ></dxo-pager>
+  <dxo-search-panel [visible]="service.isSearch" [width]="240" placeholder="Search..."></dxo-search-panel>
+
+  <dxi-column [visible]="true" caption="#" dataField="index" [width]="50"></dxi-column>
+
+  <dxi-column [visible]="service.isShowData.caption1" [caption]="service.caption.caption1" dataField="dataField1"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption2" [caption]="service.caption.caption2" dataField="dataField2"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption3" [caption]="service.caption.caption3" dataField="dataField3"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption4" [caption]="service.caption.caption4" dataField="dataField4"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption5" [caption]="service.caption.caption5" dataField="dataField5"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption6" [caption]="service.caption.caption6" dataField="dataField6"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption7" [caption]="service.caption.caption7" dataField="dataField7"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption8" [caption]="service.caption.caption8" dataField="dataField8"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption9" [caption]="service.caption.caption9" dataField="dataField9"></dxi-column>
+  <dxi-column [visible]="service.isShowData.caption10" [caption]="service.caption.caption10" dataField="dataField10"></dxi-column>
+
+  <dxi-column
+    type="buttons"
+    *ngIf="service.isShowButton.button1 || service.isShowButton.button2 || service.isShowButton.button3 || service.isShowButton.button4"
+    caption="Action"
+    [visible]="service.isButtonColumn"
+  >
+    <dxi-button
+      [visible]="service.isShowButton.button1"
+      text="Edit"
+      hint="Click here for Edit this Record"
+      icon="fas fa-edit text-white"
+      [onClick]="service.edit"
+      cssClass="mx-1 btn btn-primary"
+    ></dxi-button>
+    <dxi-button
+      [visible]="service.isShowButton.button2"
+      text="Details"
+      hint="Click here for Show Details this Record"
+      icon="fas fa-file text-white"
+      [onClick]="service.details"
+      cssClass="mx-1 btn btn-secondary"
+    ></dxi-button>
+    <dxi-button
+      [visible]="service.isShowButton.button3"
+      text="Delete"
+      hint="Click here for Delete this Record"
+      icon="fas fa-trash-alt text-white"
+      [onClick]="service.edit"
+      cssClass="mx-1 btn btn-danger"
+    ></dxi-button>
+    <dxi-button
+      [visible]="service.isShowButton.button4"
+      text="AddPermission"
+      hint="Click here for Add Permission"
+      icon="ri-lock-unlock-fill text-white"
+      [onClick]="service.addPermission"
+      cssClass="mx-1 btn btn-primary"
+    ></dxi-button>
+  </dxi-column>
+</dx-data-grid>
+
+<!-- Loading Panel -->
+<!-- <dx-load-panel
+    [closeOnOutsideClick]="false"
+    [(visible)]="service.isLoadPanelVisible"
+    message="Loading ....">
+</dx-load-panel> -->

@@ -1,0 +1,25 @@
+<aside id="sidebar" class="sidebar" style="width: 280px;">
+    <nav>      
+      <ul class="menu">
+        <ng-container *ngTemplateOutlet="recursiveMenu; context:{ $implicit: null, level: 0 }"></ng-container>
+      </ul>
+    </nav>
+    <ng-template #recursiveMenu let-parentItem let-level="level">
+      <ng-container *ngFor="let menuItem of dataList">
+        <ng-container *ngIf="menuItem.parentId === (parentItem ? parentItem.id : 0)">            
+          <li class="menu-item" [class.expanded]="isExpanded(menuItem)" [class.active]="activeChildItem === menuItem" [class.active-parent]="activeParentItem === menuItem">
+            <a [routerLink]="menuItem.menuUrl" [routerLink]="menuItem.menuUrl" routerLinkActive="active" (click)="toggleExpanded(menuItem)" [class.parent-item]="menuItem.parentId === 0">
+              <span *ngIf="menuItem.menuIcon" class="menu-icon {{ menuItem.menuIcon }}"></span>
+              <span class="menu-text">{{ menuItem.name }}</span>
+              <span *ngIf="hasChildren(menuItem)">
+                <i class="fa small-icon" [ngClass]="{'fa-chevron-down': !menuItem.expandable, 'fa-chevron-up': menuItem.expandable}"></i>
+              </span>
+            </a>
+            <ul *ngIf="isExpanded(menuItem)">
+              <ng-container *ngTemplateOutlet="recursiveMenu; context:{ $implicit: menuItem, level: level + 1 }"></ng-container>
+            </ul>
+          </li>       
+        </ng-container>
+      </ng-container>
+    </ng-template>
+  </aside>

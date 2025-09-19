@@ -1,0 +1,330 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">{{ isEditMode ? 'Edit Doctor' : 'Add New Doctor' }}</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="doctorForm" (ngSubmit)="onSubmit()">
+            <div class="row">
+              <!-- First Name -->
+              <div class="col-md-6 mb-3">
+                <label for="firstName" class="form-label">First Name <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="firstName"
+                  formControlName="firstName"
+                  [class.is-invalid]="isFieldInvalid('firstName')"
+                  placeholder="Enter first name">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('firstName')">
+                  {{ getErrorMessage('firstName') }}
+                </div>
+              </div>
+
+              <!-- Last Name -->
+              <div class="col-md-6 mb-3">
+                <label for="lastName" class="form-label">Last Name <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="lastName"
+                  formControlName="lastName"
+                  [class.is-invalid]="isFieldInvalid('lastName')"
+                  placeholder="Enter last name">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('lastName')">
+                  {{ getErrorMessage('lastName') }}
+                </div>
+              </div>
+
+              <!-- Email -->
+              <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  id="email"
+                  formControlName="email"
+                  [class.is-invalid]="isFieldInvalid('email')"
+                  placeholder="Enter email address">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('email')">
+                  {{ getErrorMessage('email') }}
+                </div>
+              </div>
+
+              <!-- Phone Number -->
+              <div class="col-md-6 mb-3">
+                <label for="phoneNumber" class="form-label">Phone Number</label>
+                <input 
+                  type="tel" 
+                  class="form-control" 
+                  id="phoneNumber"
+                  formControlName="phoneNumber"
+                  [class.is-invalid]="isFieldInvalid('phoneNumber')"
+                  placeholder="Enter phone number">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('phoneNumber')">
+                  {{ getErrorMessage('phoneNumber') }}
+                </div>
+              </div>
+
+              <!-- Date of Birth -->
+              <div class="col-md-6 mb-3">
+                <label for="dateOfBirth" class="form-label">Date of Birth</label>
+                <input 
+                  type="date" 
+                  class="form-control" 
+                  id="dateOfBirth"
+                  formControlName="dateOfBirth"
+                  [class.is-invalid]="isFieldInvalid('dateOfBirth')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('dateOfBirth')">
+                  {{ getErrorMessage('dateOfBirth') }}
+                </div>
+              </div>
+
+              <!-- Gender -->
+              <div class="col-md-6 mb-3">
+                <label for="gender" class="form-label">Gender</label>
+                <select 
+                  class="form-select" 
+                  id="gender"
+                  formControlName="gender"
+                  [class.is-invalid]="isFieldInvalid('gender')">
+                  <option value="">Select Gender</option>
+                  <option *ngFor="let option of genderOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('gender')">
+                  {{ getErrorMessage('gender') }}
+                </div>
+              </div>
+
+              <!-- Specialization -->
+              <div class="col-md-6 mb-3">
+                <label for="specialization" class="form-label">Specialization <span class="text-danger">*</span></label>
+                <select 
+                  class="form-select" 
+                  id="specialization"
+                  formControlName="specialization"
+                  [class.is-invalid]="isFieldInvalid('specialization')">
+                  <option value="">Select Specialization</option>
+                  <option *ngFor="let option of specializationOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('specialization')">
+                  {{ getErrorMessage('specialization') }}
+                </div>
+              </div>
+
+              <!-- Department -->
+              <div class="col-md-6 mb-3">
+                <label for="department" class="form-label">Department</label>
+                <select 
+                  class="form-select" 
+                  id="department"
+                  formControlName="department"
+                  [class.is-invalid]="isFieldInvalid('department')">
+                  <option value="">Select Department</option>
+                  <option *ngFor="let option of departmentOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('department')">
+                  {{ getErrorMessage('department') }}
+                </div>
+              </div>
+
+              <!-- License Number -->
+              <div class="col-md-6 mb-3">
+                <label for="licenseNumber" class="form-label">License Number</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="licenseNumber"
+                  formControlName="licenseNumber"
+                  [class.is-invalid]="isFieldInvalid('licenseNumber')"
+                  placeholder="Enter license number">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('licenseNumber')">
+                  {{ getErrorMessage('licenseNumber') }}
+                </div>
+              </div>
+
+              <!-- Qualification -->
+              <div class="col-md-6 mb-3">
+                <label for="qualification" class="form-label">Qualification</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="qualification"
+                  formControlName="qualification"
+                  [class.is-invalid]="isFieldInvalid('qualification')"
+                  placeholder="Enter qualification (e.g., MD, MBBS)">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('qualification')">
+                  {{ getErrorMessage('qualification') }}
+                </div>
+              </div>
+
+              <!-- Years of Experience -->
+              <div class="col-md-6 mb-3">
+                <label for="yearsOfExperience" class="form-label">Years of Experience</label>
+                <input 
+                  type="number" 
+                  class="form-control" 
+                  id="yearsOfExperience"
+                  formControlName="yearsOfExperience"
+                  [class.is-invalid]="isFieldInvalid('yearsOfExperience')"
+                  min="0" 
+                  max="50"
+                  placeholder="Enter years of experience">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('yearsOfExperience')">
+                  {{ getErrorMessage('yearsOfExperience') }}
+                </div>
+              </div>
+
+              <!-- Available From -->
+              <div class="col-md-6 mb-3">
+                <label for="availableFrom" class="form-label">Available From</label>
+                <input 
+                  type="time" 
+                  class="form-control" 
+                  id="availableFrom"
+                  formControlName="availableFrom"
+                  [class.is-invalid]="isFieldInvalid('availableFrom')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('availableFrom')">
+                  {{ getErrorMessage('availableFrom') }}
+                </div>
+              </div>
+
+              <!-- Available To -->
+              <div class="col-md-6 mb-3">
+                <label for="availableTo" class="form-label">Available To</label>
+                <input 
+                  type="time" 
+                  class="form-control" 
+                  id="availableTo"
+                  formControlName="availableTo"
+                  [class.is-invalid]="isFieldInvalid('availableTo')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('availableTo')">
+                  {{ getErrorMessage('availableTo') }}
+                </div>
+              </div>
+
+              <!-- Consultation Fee -->
+              <div class="col-md-6 mb-3">
+                <label for="consultationFee" class="form-label">Consultation Fee</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="consultationFee"
+                  formControlName="consultationFee"
+                  [class.is-invalid]="isFieldInvalid('consultationFee')"
+                  placeholder="Enter consultation fee">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('consultationFee')">
+                  {{ getErrorMessage('consultationFee') }}
+                </div>
+              </div>
+
+              <!-- Profile Image URL -->
+              <div class="col-md-6 mb-3">
+                <label for="profileImageUrl" class="form-label">Profile Image URL</label>
+                <input 
+                  type="url" 
+                  class="form-control" 
+                  id="profileImageUrl"
+                  formControlName="profileImageUrl"
+                  [class.is-invalid]="isFieldInvalid('profileImageUrl')"
+                  placeholder="Enter profile image URL">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('profileImageUrl')">
+                  {{ getErrorMessage('profileImageUrl') }}
+                </div>
+              </div>
+
+              <!-- Address -->
+              <div class="col-12 mb-3">
+                <label for="address" class="form-label">Address</label>
+                <textarea 
+                  class="form-control" 
+                  id="address"
+                  formControlName="address"
+                  [class.is-invalid]="isFieldInvalid('address')"
+                  rows="3"
+                  placeholder="Enter address"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('address')">
+                  {{ getErrorMessage('address') }}
+                </div>
+              </div>
+
+              <!-- Bio -->
+              <div class="col-12 mb-3">
+                <label for="bio" class="form-label">Bio</label>
+                <textarea 
+                  class="form-control" 
+                  id="bio"
+                  formControlName="bio"
+                  [class.is-invalid]="isFieldInvalid('bio')"
+                  rows="4"
+                  placeholder="Enter doctor's bio"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('bio')">
+                  {{ getErrorMessage('bio') }}
+                </div>
+              </div>
+
+              <!-- Status Checkboxes -->
+              <div class="col-md-6 mb-3">
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    id="isActive"
+                    formControlName="isActive">
+                  <label class="form-check-label" for="isActive">
+                    Active Doctor
+                  </label>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    id="isAvailable"
+                    formControlName="isAvailable">
+                  <label class="form-check-label" for="isAvailable">
+                    Available for Appointments
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="row">
+              <div class="col-12">
+                <div class="d-flex justify-content-end gap-2">
+                  <button 
+                    type="button" 
+                    class="btn btn-secondary" 
+                    (click)="onCancel()"
+                    [disabled]="isSubmitting">
+                    <i class="fas fa-times me-1"></i>
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="isSubmitting || doctorForm.invalid">
+                    <i class="fas fa-spinner fa-spin me-1" *ngIf="isSubmitting"></i>
+                    <i class="fas fa-save me-1" *ngIf="!isSubmitting"></i>
+                    {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Doctor' : 'Save Doctor') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

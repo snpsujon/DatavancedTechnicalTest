@@ -1,0 +1,14 @@
+<dx-autocomplete
+  [dataSource]="dataSource"
+  [valueExpr]="displayExpr"
+  [(value)]="selectedValue"
+  placeholder="Start typing..."
+  [minSearchLength]="minSearchLengthOption"
+  [showClearButton]="true"
+  [searchExpr]="searchExprOption"
+  (onValueChanged)="onValueChanged($event)"
+  (onInput)="searchCategories($event)"
+  [disabled]="disabled"
+  [readOnly]="isReadOnly"
+  >
+</dx-autocomplete>

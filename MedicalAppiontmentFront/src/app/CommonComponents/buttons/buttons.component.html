@@ -1,0 +1,113 @@
+<!-- Button Start -->
+<div class="row g-3 mt-2 mb-3 d-flex justify-content-center text-center">
+  <div
+    class="col-sm-12 col-xl-2 col-xxl-2"
+    (click)="selectTab('PList')"
+    *ngIf="
+      currentRoute == '/orderPList' ||
+      currentRoute == '/sampleOrderPList' ||
+      currentRoute === '/deliveryOrderPList' ||
+      currentRoute == '/orderList' ||
+      currentRoute == '/sampleOrderList' ||
+      currentRoute === '/deliveryOrderList' ||
+      currentRoute === '/SampledeliveryOrderList' ||
+      currentRoute === '/SampledeliveryOrderPList' ||
+      currentRoute === '/SampleInvoiceList' ||
+      currentRoute === '/SampleInvoicePList' ||
+      currentRoute.startsWith('/orderForm') ||
+      currentRoute.startsWith('/orderList') ||
+      currentRoute.startsWith('/deliveryOrderList') ||
+      currentRoute.startsWith('/deliveryOrderForm') ||
+      currentRoute.startsWith('/mrPList') ||
+      currentRoute.startsWith('/invPList') ||
+      currentRoute.startsWith('/mrForm') ||
+      currentRoute.startsWith('/mrList') ||
+      currentRoute.startsWith('/invList') ||
+      currentRoute.startsWith('/invForm')
+    "
+  >
+    <a class="btn btn-secondary bg-gradient btn-block">
+      <i class="fa fa-list m-r-10"></i>
+      Pending List
+    </a>
+  </div>
+  <!-- <div
+    class="col-sm-12 col-xl-3 col-xxl-3"
+    (click)="selectTab('CPList')"
+    *ngIf="
+      currentRoute == '/orderPList' ||
+      currentRoute == '/orderList' ||
+      currentRoute.startsWith('/orderForm') ||
+      currentRoute.startsWith('/orderList')
+    "
+  >
+    <a class="btn btn-secondary bg-gradient btn-block">
+      <i class="fa fa-list m-r-10"></i>
+      Pending Credit List
+    </a>
+  </div> -->
+  <div
+    class="col-sm-12 col-xl-2 col-xxl-2"
+    (click)="selectTab('Approve')"
+    *ngIf="isShowApprove()"
+  >
+    <a class="btn btn-success bg-gradient btn-block">
+      <i class="fa fa-check-circle m-r-10"></i>
+      Approve
+    </a>
+  </div>
+  <div class="col-sm-12 col-xl-2 col-xxl-2" (click)="selectTab('GMR')" *ngIf="currentRoute == '/mrPList' || currentRoute == '/mrForm'">
+    <a class="btn btn-secondary bg-gradient btn-block">
+      <i class="fa fa-list m-r-10"></i>
+      Generate MR
+    </a>
+  </div>
+  <div class="col-sm-12 col-xl-2 col-xxl-2" (click)="selectTab('List')" *ngIf="currentRoute!='/attendanceList'">
+    <a class="btn btn-secondary bg-gradient btn-block">
+      <i class="fa fa-list m-r-10"></i>
+      List
+    </a>
+  </div>
+  <div class="col-sm-12 col-xl-2 col-xxl-2" (click)="selectTab('Form')" *ngIf="isShowNew()">
+    <a class="btn btn-primary bg-gradient btn-block">
+      <i class="fa fa-plus m-r-10"></i>
+      New
+    </a>
+  </div>
+   <div class="col-sm-12 col-xl-2 col-xxl-2" *ngIf="isShowEdit()" (click)="selectTab('Edit')">
+    <a class="btn btn-primary bg-gradient btn-block">
+      <i class="fa fa-plus m-r-10"></i>
+      Edit
+    </a>
+  </div>
+  <div
+    class="col-sm-12 col-xl-2 col-xxl-2"
+    (click)="selectTab('Save')" 
+    *ngIf="isShowSave()"
+  >
+    <a class="btn btn-success bg-gradient btn-block">
+      <i class="fa fa-save m-r-10"></i>
+      Save
+    </a>
+  </div>
+  <div class="col-sm-12 col-xl-2 col-xxl-2" *ngIf="isShowSearch()" (click)="toggleSearch()">
+    <a class="btn btn-info bg-gradient btn-block">
+      <i class="fa fa-search m-r-10"></i>
+      Search
+    </a>
+  </div>
+  <div class="col-sm-12 col-xl-2 col-xxl-2" (click)="selectTab('List')" *ngIf="isShowCancel()">
+    <a class="btn btn-danger bg-gradient btn-block">
+      <i class="fa fa-trash m-r-10"></i>
+      Cancel
+    </a>
+  </div>
+  <div class="col-sm-12 col-xl-4 col-xxl-3" (click)="selectTab('Delete')" *ngIf="isShowDelete()">
+    <a class="btn btn-danger bg-gradient btn-block">
+      <i class="fa fa-trash m-r-10"></i>
+      Delete Selected Items
+    </a>
+  </div>
+</div>
+<!-- Button End -->
+<router-outlet></router-outlet>

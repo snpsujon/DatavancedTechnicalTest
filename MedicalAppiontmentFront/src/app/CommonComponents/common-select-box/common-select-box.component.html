@@ -1,0 +1,19 @@
+<dx-select-box
+            [dataSource]="dataList"
+            [displayExpr]="name"
+            [valueExpr]="id"
+            [inputAttr]="{ 'aria-label': 'Product' }"
+            [searchMode]="searchModeOption"
+            [searchExpr]="searchExprOption"
+            [searchTimeout]="searchTimeoutOption"
+            [minSearchLength]="minSearchLengthOption"
+            [searchEnabled]="true"
+            [showDataBeforeSearch]="showDataBeforeSearchOption"
+            (onValueChanged)="onValueChanged($event)"
+            [disabled]="disabled"
+            [value]="selectedValue"
+            (onInput)="onSearch($event)"
+            [readOnly]="isReadOnly"
+    ></dx-select-box>
+
+    <!-- (onInput)="onSearch($event)" -->

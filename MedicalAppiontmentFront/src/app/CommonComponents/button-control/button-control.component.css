@@ -1,0 +1,79 @@
+::ng-deep .tabs-demo {
+    display: flex;
+  }
+  
+  ::ng-deep .strict-width {
+    max-width: none;
+  }
+  
+  ::ng-deep .dx-theme-generic .strict-width {
+    max-width: none;
+  }
+  
+  ::ng-deep .widget-container {
+    display: flex;
+    flex-grow: 1;
+    width: 100%;
+    overflow: clip;
+  }
+  
+  ::ng-deep .widget-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* Allow tabs to wrap to the next line */
+    
+    gap: 80px;
+    width: 100%;
+    max-width: none;
+  }
+  
+  ::ng-deep .widget-wrapper-vertical {
+    width: 100%;
+    flex-direction: row;
+    max-width: none;
+  }
+  
+  ::ng-deep .options {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    padding: 20px;
+    background-color: rgba(191, 191, 191, 0.15);
+  }
+  
+  ::ng-deep .caption {
+    font-weight: 500;
+    font-size: 18px;
+  }
+  
+  ::ng-deep #show-navigation-buttons {
+    margin-top: 22px;
+  }
+  
+  ::ng-deep .option {
+    margin-top: 20px;
+  }
+  
+  ::ng-deep .dx-tabs {
+    max-width: 100%;
+  }
+  
+  ::ng-deep .dx-tabs-vertical {
+    height: 216px;
+  }
+  
+  ::ng-deep .dx-viewport:not(.dx-theme-generic) .dx-tabs-horizontal {
+    border-block-end: 1px solid rgb(225, 225, 225, 0.4);
+  }
+
+  
+  ::ng-deep .dx-viewport:not(.dx-theme-generic) .dx-tabs-vertical {
+    height: 232px;
+    border-inline-end: 1px solid rgb(225, 225, 225, 0.4);
+  }
+  @media screen and (max-width: 768px) {
+    ::ng-deep .widget-wrapper,
+    ::ng-deep .widget-wrapper-vertical {
+      max-width: none;
+    }
+  }
+ 

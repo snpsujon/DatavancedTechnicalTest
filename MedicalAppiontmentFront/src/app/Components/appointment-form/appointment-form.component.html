@@ -1,0 +1,179 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">{{ isEditMode ? 'Edit Appointment' : 'Schedule New Appointment' }}</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()">
+            <div class="row">
+              <!-- Patient Selection -->
+              <div class="col-md-6 mb-3">
+                <label for="patientId" class="form-label">Patient <span class="text-danger">*</span></label>
+                <select 
+                  class="form-select" 
+                  id="patientId"
+                  formControlName="patientId"
+                  [class.is-invalid]="isFieldInvalid('patientId')">
+                  <option value="">Select Patient</option>
+                  <option *ngFor="let patient of patients" [value]="patient.id">
+                    {{ patient.firstName }} {{ patient.lastName }} - {{ patient.email }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('patientId')">
+                  {{ getErrorMessage('patientId') }}
+                </div>
+              </div>
+
+              <!-- Doctor Selection -->
+              <div class="col-md-6 mb-3">
+                <label for="doctorId" class="form-label">Doctor <span class="text-danger">*</span></label>
+                <select 
+                  class="form-select" 
+                  id="doctorId"
+                  formControlName="doctorId"
+                  [class.is-invalid]="isFieldInvalid('doctorId')">
+                  <option value="">Select Doctor</option>
+                  <option *ngFor="let doctor of doctors" [value]="doctor.id">
+                    Dr. {{ doctor.firstName }} {{ doctor.lastName }} - {{ doctor.specialization }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('doctorId')">
+                  {{ getErrorMessage('doctorId') }}
+                </div>
+              </div>
+
+              <!-- Appointment Date -->
+              <div class="col-md-6 mb-3">
+                <label for="appointmentDate" class="form-label">Appointment Date <span class="text-danger">*</span></label>
+                <input 
+                  type="date" 
+                  class="form-control" 
+                  id="appointmentDate"
+                  formControlName="appointmentDate"
+                  [class.is-invalid]="isFieldInvalid('appointmentDate')"
+                  [min]="getTodayDate()">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('appointmentDate')">
+                  {{ getErrorMessage('appointmentDate') }}
+                </div>
+              </div>
+
+              <!-- Appointment Time -->
+              <div class="col-md-6 mb-3">
+                <label for="appointmentTime" class="form-label">Appointment Time <span class="text-danger">*</span></label>
+                <select 
+                  class="form-select" 
+                  id="appointmentTime"
+                  formControlName="appointmentTime"
+                  [class.is-invalid]="isFieldInvalid('appointmentTime')"
+                  [disabled]="availableTimeSlots.length === 0">
+                  <option value="">Select Time</option>
+                  <option *ngFor="let timeSlot of availableTimeSlots" [value]="timeSlot">
+                    {{ timeSlot }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('appointmentTime')">
+                  {{ getErrorMessage('appointmentTime') }}
+                </div>
+                <small class="form-text text-muted" *ngIf="availableTimeSlots.length === 0 && appointmentForm.get('doctorId')?.value && appointmentForm.get('appointmentDate')?.value">
+                  No available time slots for the selected doctor on this date.
+                </small>
+              </div>
+
+              <!-- Visit Type -->
+              <div class="col-md-6 mb-3">
+                <label for="visitType" class="form-label">Visit Type <span class="text-danger">*</span></label>
+                <select 
+                  class="form-select" 
+                  id="visitType"
+                  formControlName="visitType"
+                  [class.is-invalid]="isFieldInvalid('visitType')">
+                  <option value="">Select Visit Type</option>
+                  <option *ngFor="let option of visitTypeOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('visitType')">
+                  {{ getErrorMessage('visitType') }}
+                </div>
+              </div>
+
+              <!-- Status (only for edit mode) -->
+              <div class="col-md-6 mb-3" *ngIf="isEditMode">
+                <label for="status" class="form-label">Status</label>
+                <select 
+                  class="form-select" 
+                  id="status"
+                  formControlName="status"
+                  [class.is-invalid]="isFieldInvalid('status')">
+                  <option *ngFor="let option of statusOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('status')">
+                  {{ getErrorMessage('status') }}
+                </div>
+              </div>
+
+              <!-- Notes -->
+              <div class="col-12 mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea 
+                  class="form-control" 
+                  id="notes"
+                  formControlName="notes"
+                  [class.is-invalid]="isFieldInvalid('notes')"
+                  rows="3"
+                  placeholder="Enter appointment notes"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('notes')">
+                  {{ getErrorMessage('notes') }}
+                </div>
+              </div>
+
+              <!-- Diagnosis (only for edit mode or completed appointments) -->
+              <div class="col-12 mb-3" *ngIf="isEditMode">
+                <label for="diagnosis" class="form-label">Diagnosis</label>
+                <textarea 
+                  class="form-control" 
+                  id="diagnosis"
+                  formControlName="diagnosis"
+                  [class.is-invalid]="isFieldInvalid('diagnosis')"
+                  rows="4"
+                  placeholder="Enter diagnosis details"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('diagnosis')">
+                  {{ getErrorMessage('diagnosis') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="row">
+              <div class="col-12">
+                <div class="d-flex justify-content-end gap-2">
+                  <button 
+                    type="button" 
+                    class="btn btn-secondary" 
+                    (click)="onCancel()"
+                    [disabled]="isSubmitting">
+                    <i class="fas fa-times me-1"></i>
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="isSubmitting || appointmentForm.invalid">
+                    <i class="fas fa-spinner fa-spin me-1" *ngIf="isSubmitting"></i>
+                    <i class="fas fa-calendar-plus me-1" *ngIf="!isSubmitting && !isEditMode"></i>
+                    <i class="fas fa-save me-1" *ngIf="!isSubmitting && isEditMode"></i>
+                    {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Appointment' : 'Schedule Appointment') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

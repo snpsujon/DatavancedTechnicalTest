@@ -1,0 +1,209 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">{{ isEditMode ? 'Edit Medicine' : 'Add New Medicine' }}</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="medicineForm" (ngSubmit)="onSubmit()">
+            <div class="row">
+              <!-- Medicine Name -->
+              <div class="col-md-6 mb-3">
+                <label for="name" class="form-label">Medicine Name <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="name"
+                  formControlName="name"
+                  [class.is-invalid]="isFieldInvalid('name')"
+                  placeholder="Enter medicine name">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('name')">
+                  {{ getErrorMessage('name') }}
+                </div>
+              </div>
+
+              <!-- Generic Name -->
+              <div class="col-md-6 mb-3">
+                <label for="genericName" class="form-label">Generic Name</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="genericName"
+                  formControlName="genericName"
+                  [class.is-invalid]="isFieldInvalid('genericName')"
+                  placeholder="Enter generic name">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('genericName')">
+                  {{ getErrorMessage('genericName') }}
+                </div>
+              </div>
+
+              <!-- Dosage Form -->
+              <div class="col-md-6 mb-3">
+                <label for="dosageForm" class="form-label">Dosage Form</label>
+                <select 
+                  class="form-select" 
+                  id="dosageForm"
+                  formControlName="dosageForm"
+                  [class.is-invalid]="isFieldInvalid('dosageForm')">
+                  <option value="">Select Dosage Form</option>
+                  <option *ngFor="let option of dosageFormOptions" [value]="option.value">
+                    {{ option.label }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('dosageForm')">
+                  {{ getErrorMessage('dosageForm') }}
+                </div>
+              </div>
+
+              <!-- Strength -->
+              <div class="col-md-6 mb-3">
+                <label for="strength" class="form-label">Strength</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="strength"
+                  formControlName="strength"
+                  [class.is-invalid]="isFieldInvalid('strength')"
+                  placeholder="e.g., 500mg, 10ml">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('strength')">
+                  {{ getErrorMessage('strength') }}
+                </div>
+              </div>
+
+              <!-- Manufacturer -->
+              <div class="col-md-6 mb-3">
+                <label for="manufacturer" class="form-label">Manufacturer</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="manufacturer"
+                  formControlName="manufacturer"
+                  [class.is-invalid]="isFieldInvalid('manufacturer')"
+                  placeholder="Enter manufacturer name">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('manufacturer')">
+                  {{ getErrorMessage('manufacturer') }}
+                </div>
+              </div>
+
+              <!-- Active Status -->
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Status</label>
+                <div class="form-check form-switch">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    id="isActive"
+                    formControlName="isActive">
+                  <label class="form-check-label" for="isActive">
+                    Active Medicine
+                  </label>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="col-12 mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea 
+                  class="form-control" 
+                  id="description"
+                  formControlName="description"
+                  [class.is-invalid]="isFieldInvalid('description')"
+                  rows="3"
+                  placeholder="Enter medicine description"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('description')">
+                  {{ getErrorMessage('description') }}
+                </div>
+              </div>
+
+              <!-- Indications -->
+              <div class="col-12 mb-3">
+                <label for="indications" class="form-label">Indications</label>
+                <textarea 
+                  class="form-control" 
+                  id="indications"
+                  formControlName="indications"
+                  [class.is-invalid]="isFieldInvalid('indications')"
+                  rows="4"
+                  placeholder="What conditions or diseases this medicine is used to treat"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('indications')">
+                  {{ getErrorMessage('indications') }}
+                </div>
+              </div>
+
+              <!-- Contraindications -->
+              <div class="col-12 mb-3">
+                <label for="contraindications" class="form-label">Contraindications</label>
+                <textarea 
+                  class="form-control" 
+                  id="contraindications"
+                  formControlName="contraindications"
+                  [class.is-invalid]="isFieldInvalid('contraindications')"
+                  rows="4"
+                  placeholder="When this medicine should not be used"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('contraindications')">
+                  {{ getErrorMessage('contraindications') }}
+                </div>
+              </div>
+
+              <!-- Side Effects -->
+              <div class="col-12 mb-3">
+                <label for="sideEffects" class="form-label">Side Effects</label>
+                <textarea 
+                  class="form-control" 
+                  id="sideEffects"
+                  formControlName="sideEffects"
+                  [class.is-invalid]="isFieldInvalid('sideEffects')"
+                  rows="4"
+                  placeholder="List of possible side effects"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('sideEffects')">
+                  {{ getErrorMessage('sideEffects') }}
+                </div>
+              </div>
+
+              <!-- Instructions -->
+              <div class="col-12 mb-3">
+                <label for="instructions" class="form-label">Instructions</label>
+                <textarea 
+                  class="form-control" 
+                  id="instructions"
+                  formControlName="instructions"
+                  [class.is-invalid]="isFieldInvalid('instructions')"
+                  rows="4"
+                  placeholder="General instructions for use"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('instructions')">
+                  {{ getErrorMessage('instructions') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="row">
+              <div class="col-12">
+                <div class="d-flex justify-content-end gap-2">
+                  <button 
+                    type="button" 
+                    class="btn btn-secondary" 
+                    (click)="onCancel()"
+                    [disabled]="isSubmitting">
+                    <i class="fas fa-times me-1"></i>
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    class="btn btn-primary"
+                    [disabled]="isSubmitting || medicineForm.invalid">
+                    <i class="fas fa-spinner fa-spin me-1" *ngIf="isSubmitting"></i>
+                    <i class="fas fa-pills me-1" *ngIf="!isSubmitting && !isEditMode"></i>
+                    <i class="fas fa-save me-1" *ngIf="!isSubmitting && isEditMode"></i>
+                    {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Medicine' : 'Add Medicine') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,40 @@
+<ng-scrollbar style="height: 362px" visibility="hover" track="all">
+  <table class="table table-primary table-hover m-b-0 mt-3">
+    <thead>
+      <tr>
+        <th>SL</th>
+        @for (sale of title; track sale) {
+          <th>
+            <span>
+              {{ sale.title }}
+            </span>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of data; let i = index">
+        <td>{{i+1}}</td>
+        <ng-container *ngFor="let column of title">
+          <td>
+            {{ item[column.key] }}
+          </td>
+
+        </ng-container>
+      </tr>
+      <!-- <ng-container *ngFor="let column of title">
+
+
+      </ng-container> -->
+      <!-- <tr>
+        <td>08-11-2016</td>
+        @for (progress of progressBar; track progress) {
+          <td>
+            {{ progress.value }}
+          </td>
+        }
+      </tr> -->
+     
+    </tbody>
+  </table>
+</ng-scrollbar>

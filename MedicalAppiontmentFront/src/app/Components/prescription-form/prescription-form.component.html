@@ -1,0 +1,277 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title">{{ isEditMode ? 'Edit Prescription' : 'Create New Prescription' }}</h4>
+        </div>
+        <div class="card-body">
+          <!-- Loading Spinner -->
+          <div *ngIf="isLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading prescription data...</p>
+          </div>
+
+          <!-- Prescription Form -->
+          <form [formGroup]="prescriptionForm" (ngSubmit)="onSubmit()" *ngIf="!isLoading">
+            <div class="row">
+              <!-- Appointment Selection -->
+              <div class="col-md-6 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <label for="appointmentId" class="form-label">Appointment <span class="text-danger">*</span></label>
+                  <button 
+                    type="button" 
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="refreshData()"
+                    [disabled]="loadingAppointments">
+                    <i class="fas fa-sync-alt" [class.fa-spin]="loadingAppointments"></i>
+                    Refresh
+                  </button>
+                </div>
+                <select 
+                  class="form-select" 
+                  id="appointmentId"
+                  formControlName="appointmentId"
+                  [class.is-invalid]="isFieldInvalid('appointmentId')"
+                  [disabled]="loadingAppointments">
+                  <option value="">
+                    {{ loadingAppointments ? 'Loading appointments...' : 'Select Appointment' }}
+                  </option>
+                  <option *ngFor="let appointment of appointments" [value]="appointment.id">
+                    {{ getAppointmentDisplayText(appointment.id) }}
+                  </option>
+                </select>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('appointmentId')">
+                  {{ getErrorMessage('appointmentId') }}
+                </div>
+                <small class="form-text text-muted" *ngIf="appointments.length === 0 && !loadingAppointments">
+                  No appointments available. Please create an appointment first.
+                </small>
+              </div>
+
+              <!-- General Notes -->
+              <div class="col-12 mb-3">
+                <label for="generalNotes" class="form-label">General Notes</label>
+                <textarea 
+                  class="form-control" 
+                  id="generalNotes"
+                  formControlName="generalNotes"
+                  [class.is-invalid]="isFieldInvalid('generalNotes')"
+                  rows="3"
+                  placeholder="Enter general prescription notes"
+                  maxlength="1000"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('generalNotes')">
+                  {{ getErrorMessage('generalNotes') }}
+                </div>
+                <small class="form-text text-muted">
+                  {{ prescriptionForm.get('generalNotes')?.value?.length || 0 }}/1000 characters
+                </small>
+              </div>
+
+              <!-- Follow-up Instructions -->
+              <div class="col-12 mb-3">
+                <label for="followUpInstructions" class="form-label">Follow-up Instructions</label>
+                <textarea 
+                  class="form-control" 
+                  id="followUpInstructions"
+                  formControlName="followUpInstructions"
+                  [class.is-invalid]="isFieldInvalid('followUpInstructions')"
+                  rows="3"
+                  placeholder="Enter follow-up instructions for the patient"
+                  maxlength="1000"></textarea>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('followUpInstructions')">
+                  {{ getErrorMessage('followUpInstructions') }}
+                </div>
+                <small class="form-text text-muted">
+                  {{ prescriptionForm.get('followUpInstructions')?.value?.length || 0 }}/1000 characters
+                </small>
+              </div>
+            </div>
+
+            <!-- Prescription Details Section -->
+            <div class="row">
+              <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h5 class="mb-0">Prescription Details</h5>
+                  <div class="d-flex gap-2">
+                    <button 
+                      type="button" 
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="refreshData()"
+                      [disabled]="loadingMedicines"
+                      title="Refresh medicines list">
+                      <i class="fas fa-sync-alt" [class.fa-spin]="loadingMedicines"></i>
+                    </button>
+                    <button 
+                      type="button" 
+                      class="btn btn-success btn-sm"
+                      (click)="addPrescriptionDetail()"
+                      [disabled]="isSubmitting || loadingMedicines">
+                      <i class="fas fa-plus me-1"></i>
+                      Add Medicine
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Prescription Details Grid -->
+                <div class="table-responsive" *ngIf="prescriptionDetailsArray.length > 0">
+                  <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th width="25%">Medicine <span class="text-danger">*</span></th>
+                        <th width="20%">Dosage <span class="text-danger">*</span></th>
+                        <th width="15%">Start Date <span class="text-danger">*</span></th>
+                        <th width="15%">End Date <span class="text-danger">*</span></th>
+                        <th width="20%">Notes</th>
+                        <th width="5%">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let detail of prescriptionDetailsArray.controls; let i = index" 
+                          [formGroupName]="i"
+                          [class.table-danger]="!validateDateRange(detail.get('startDate')?.value, detail.get('endDate')?.value)">
+                        <!-- Medicine Selection -->
+                        <td>
+                          <select 
+                            class="form-select form-select-sm" 
+                            formControlName="medicineId"
+                            [class.is-invalid]="isFieldInvalid('medicineId', i)"
+                            [disabled]="loadingMedicines">
+                            <option value="">
+                              {{ loadingMedicines ? 'Loading medicines...' : 'Select Medicine' }}
+                            </option>
+                            <option *ngFor="let medicine of medicines" [value]="medicine.id">
+                              {{ getMedicineDisplayText(medicine.id) }}
+                            </option>
+                          </select>
+                          <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('medicineId', i)">
+                            {{ getErrorMessage('medicineId', i) }}
+                          </div>
+                          <small class="text-muted" *ngIf="medicines.length === 0 && !loadingMedicines">
+                            No medicines available
+                          </small>
+                        </td>
+
+                        <!-- Dosage -->
+                        <td>
+                          <input 
+                            type="text" 
+                            class="form-control form-control-sm" 
+                            formControlName="dosage"
+                            [class.is-invalid]="isFieldInvalid('dosage', i)"
+                            placeholder="e.g., 1 tablet twice daily"
+                            maxlength="200">
+                          <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('dosage', i)">
+                            {{ getErrorMessage('dosage', i) }}
+                          </div>
+                        </td>
+
+                        <!-- Start Date -->
+                        <td>
+                          <input 
+                            type="date" 
+                            class="form-control form-control-sm" 
+                            formControlName="startDate"
+                            [class.is-invalid]="isFieldInvalid('startDate', i)"
+                            [min]="getTodayDate()">
+                          <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('startDate', i)">
+                            {{ getErrorMessage('startDate', i) }}
+                          </div>
+                        </td>
+
+                        <!-- End Date -->
+                        <td>
+                          <input 
+                            type="date" 
+                            class="form-control form-control-sm" 
+                            formControlName="endDate"
+                            [class.is-invalid]="isFieldInvalid('endDate', i)"
+                            [min]="detail.get('startDate')?.value || getTodayDate()">
+                          <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('endDate', i)">
+                            {{ getErrorMessage('endDate', i) }}
+                          </div>
+                          <small class="text-danger" *ngIf="!validateDateRange(detail.get('startDate')?.value, detail.get('endDate')?.value) && detail.get('startDate')?.value && detail.get('endDate')?.value">
+                            End date must be after start date
+                          </small>
+                        </td>
+
+                        <!-- Notes -->
+                        <td>
+                          <textarea 
+                            class="form-control form-control-sm" 
+                            formControlName="notes"
+                            [class.is-invalid]="isFieldInvalid('notes', i)"
+                            rows="2"
+                            placeholder="Additional notes"
+                            maxlength="1000"></textarea>
+                          <div class="invalid-feedback d-block" *ngIf="isFieldInvalid('notes', i)">
+                            {{ getErrorMessage('notes', i) }}
+                          </div>
+                        </td>
+
+                        <!-- Action -->
+                        <td class="text-center">
+                          <button 
+                            type="button" 
+                            class="btn btn-danger btn-sm"
+                            (click)="removePrescriptionDetail(i)"
+                            [disabled]="isSubmitting"
+                            title="Remove this medicine">
+                            <i class="fas fa-trash"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- Empty State -->
+                <div *ngIf="prescriptionDetailsArray.length === 0" class="text-center py-4 border rounded">
+                  <i class="fas fa-pills fa-3x text-muted mb-3"></i>
+                  <p class="text-muted">No medicines added yet. Click "Add Medicine" to start adding prescription details.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="d-flex justify-content-between">
+                  <button 
+                    type="button" 
+                    class="btn btn-info"
+                    (click)="generatePreviewReport()"
+                    [disabled]="isSubmitting || prescriptionForm.invalid || prescriptionDetailsArray.length === 0">
+                    <i class="fas fa-file-pdf me-1"></i>
+                    Preview Report
+                  </button>
+                  <div class="d-flex gap-2">
+                    <button 
+                      type="button" 
+                      class="btn btn-secondary" 
+                      (click)="onCancel()"
+                      [disabled]="isSubmitting">
+                      <i class="fas fa-times me-1"></i>
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      class="btn btn-primary"
+                      [disabled]="isSubmitting || prescriptionForm.invalid || prescriptionDetailsArray.length === 0">
+                      <i class="fas fa-spinner fa-spin me-1" *ngIf="isSubmitting"></i>
+                      <i class="fas fa-prescription me-1" *ngIf="!isSubmitting && !isEditMode"></i>
+                      <i class="fas fa-save me-1" *ngIf="!isSubmitting && isEditMode"></i>
+                      {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Prescription' : 'Create Prescription') }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

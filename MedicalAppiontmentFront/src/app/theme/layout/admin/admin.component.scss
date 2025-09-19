@@ -1,0 +1,9 @@
+.report-viewer {
+    $Menu-width: 0;
+  
+    // Ensure the menu or related elements are hidden or adjusted accordingly
+    .pcoded-main-container {
+      margin-left: $Menu-width !important;  // Adjust the width accordingly
+    }
+  }
+  

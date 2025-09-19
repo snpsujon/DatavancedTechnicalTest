@@ -1,0 +1,141 @@
+<section class="section">
+  <div class="container mb-2" style="background-color: #f7d794">
+    <ul class="nav nav-tabs">
+      <li
+        class="nav-item hoverEffect"
+        (click)="selectTab('PList')"
+        *ngIf="
+          currentRoute == '/orderPList' ||
+          currentRoute === '/deliveryOrderPList' ||
+          currentRoute == '/orderList' ||
+          currentRoute === '/deliveryOrderList' ||
+          currentRoute.startsWith('/orderForm') ||
+          currentRoute.startsWith('/orderList') ||
+          currentRoute.startsWith('/deliveryOrderList') ||
+          currentRoute.startsWith('/deliveryOrderForm') ||
+          currentRoute.startsWith('/mrPList') ||
+          currentRoute.startsWith('/invPList') ||
+          currentRoute.startsWith('/mrForm') ||
+          currentRoute.startsWith('/mrList') ||
+          currentRoute.startsWith('/invList') ||
+          currentRoute.startsWith('/invForm')
+        "
+      >
+        <a class="nav-link active" [class.active]="commonService.selectedTab === 'PList'">
+          <i class="fa fa-list" aria-hidden="true"></i>
+          &nbsp;Pending List
+        </a>
+      </li>
+      <!-- <li
+        class="nav-item hoverEffect"
+        (click)="selectTab('CPList')"
+        *ngIf="
+          currentRoute == '/orderPList' ||
+          currentRoute == '/orderList' ||
+          currentRoute.startsWith('/orderForm') ||
+          currentRoute.startsWith('/orderList')
+        "
+      >
+        <a class="nav-link active" [class.active]="commonService.selectedTab === 'CPList'">
+          <i class="fa fa-list" aria-hidden="true"></i>
+          &nbsp;Pending Credit List
+        </a>
+      </li> -->
+
+    
+      <!-- <li
+        class="nav-item hoverEffect"
+        (click)="selectTab('Approve')"
+        *ngIf="
+          currentRoute == '/orderPList' ||
+          currentRoute == '/orderList' ||
+          currentRoute.startsWith('/orderForm') ||
+          currentRoute.startsWith('/orderList')
+        "
+      >
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Approve'">
+          <i class="fa fa-edit" aria-hidden="true"></i>
+          &nbsp;Approve
+        </a>
+      </li> -->
+      <li class="nav-item hoverEffect" (click)="selectTab('List')">
+        <a class="nav-link" aria-current="page" [class.active]="commonService.selectedTab === 'List'">
+          <i class="fa fa-list" aria-hidden="true"></i>
+          &nbsp; List
+        </a>
+      </li>
+      <li class="nav-item hoverEffect" (click)="selectTab('Approve')" *ngIf="isShowApprove()">
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Approve'">
+          <i class="fa fa-edit" aria-hidden="true"></i>
+          &nbsp;Approve
+        </a>
+      </li>
+      <li class="nav-item hoverEffect" (click)="selectTab('GMR')" *ngIf="currentRoute == '/mrPList' || currentRoute == '/mrForm'">
+        <a class="nav-link" aria-current="page" [class.active]="commonService.selectedTab === 'GMR'">
+          <i class="fa fa-list" aria-hidden="true"></i>
+          &nbsp; Generate MR
+        </a>
+      </li>
+          <li class="nav-item hoverEffect" (click)="selectTab('B2S')" *ngIf="currentRoute == '/mrPList'">
+        <a class="nav-link" aria-current="page" [class.active]="commonService.selectedTab === 'GMR'">
+          <i class="fa fa-arrow-left" aria-hidden="true"></i>
+          &nbsp; Back To Sales Confirm
+        </a>
+      </li>
+      <li  class="nav-item hoverEffect" (click)="selectTab('Form')" *ngIf="currentRoute !== '/salesConfirmList' && permissionData.IsAdd">
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Form'">
+          <i class="fa fa-plus" aria-hidden="true"></i>
+          &nbsp;New
+        </a>
+      </li>
+      <li class="nav-item hoverEffect" *ngIf="isShowEdit()" (click)="selectTab('Edit')">
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Edit'">
+          <i class="fa fa-edit" aria-hidden="true"></i>
+          &nbsp;Edit
+        </a>
+      </li>
+
+      <li
+        class="nav-item hoverEffect"
+        (click)="selectTab('Save')"
+        *ngIf="currentRoute !== '/salesConfirmList' && commonService.selectedTab != 'Details' && commonService.selectedTab != 'Delete' && commonService.selectedTab != 'List' && (permissionData.IsAdd || permissionData.IsEdit) "
+      >
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Save'">
+          <i class="fa fa-file" aria-hidden="true"></i>
+          &nbsp;Save
+        </a>
+      </li>
+      <li
+        class="nav-item hoverEffect"
+        (click)="selectTab('Details')"
+        *ngIf="currentRoute !== '/salesConfirmList' && commonService.selectedTab != 'Edit' &&commonService.selectedTab === 'Details'"
+      >
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Details'">
+          <i class="fa fa-info-circle" aria-hidden="true"></i>
+          &nbsp;Details
+        </a>
+      </li>
+      <li
+        class="nav-item hoverEffect"
+        (click)="selectTab('Delete')"
+        *ngIf="currentRoute !== '/salesConfirmList' && commonService.selectedTab != 'Edit' && permissionData.IsDelete"
+      >
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Delete'">
+          <i class="fa fa-trash" aria-hidden="true"></i>
+          &nbsp;Delete
+        </a>
+      </li>
+      <li
+        class="nav-item hoverEffect"
+        (click)="selectTab('Search')"
+        *ngIf="currentRoute !== '/salesConfirmList' && commonService.selectedTab != 'Edit'"
+      >
+        <a class="nav-link" [class.active]="commonService.selectedTab === 'Search'">
+          <i class="fa fa-search" aria-hidden="true"></i>
+          &nbsp;Search
+        </a>
+      </li>
+    </ul>
+  </div>
+  <router-outlet></router-outlet>
+</section>

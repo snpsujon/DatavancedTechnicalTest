@@ -1,0 +1,76 @@
+.table th {
+  position: relative; /* Positioning context for absolute elements, if needed */
+}
+
+.table th i {
+  margin-left: 5px; /* Add some space between the header text and the icon */
+  font-size: 0.8em; /* Adjust icon size */
+  vertical-align: middle; /* Align the icon with the text */
+}
+ul {
+  list-style-type: none;
+  margin-top: 4px;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  pointer-events: auto; /* Check if this exists in your styles */
+  cursor: pointer;
+}
+.myPointer{
+  cursor: pointer;
+
+}
+
+
+
+
+.mySearch{
+  -webkit-box-shadow: -4px 2px 26px 4px rgba(0,0,0,0.43); 
+  box-shadow: -4px 2px 26px 4px rgba(0,0,0,0.43);
+  border: 5px inset #1C6EA4;
+border-radius: 40px 7px 40px 7px;
+}
+
+.search-btn {
+  font-size: 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.3s ease-in-out;
+}
+
+.search-btn:hover {
+  transform: scale(1.1);
+}
+
+.search-container {
+  text-align: center;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.table-move {
+  margin-top: 20px;
+  transition: margin 0.3s ease-in-out;
+}
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+
+
+
