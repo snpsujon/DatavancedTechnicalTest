@@ -41,6 +41,7 @@ export interface PrescriptionCreate {
 }
 
 export interface PrescriptionDetailCreate {
+  id?: number;
   medicineId: number;
   dosage: string;
   startDate: string;
@@ -124,6 +125,15 @@ export class PrescriptionService {
    */
   getPrescriptionByAppointment(appointmentId: number): Observable<Prescription> {
     return this.httpService.GetData(`Prescription/appointment/${appointmentId}`) as Observable<Prescription>;
+  }
+
+  /**
+   * Get prescription details by prescription ID
+   * @param prescriptionId - Prescription ID
+   * @returns Observable<PrescriptionDetail[]>
+   */
+  getPrescriptionDetailsByPrescriptionId(prescriptionId: number): Observable<PrescriptionDetail[]> {
+    return this.httpService.GetData(`Prescription/${prescriptionId}/details`) as Observable<PrescriptionDetail[]>;
   }
 
   /**

@@ -36,6 +36,7 @@ BEGIN
         [GeneralNotes] [nvarchar](1000) NULL,
         [FollowUpInstructions] [nvarchar](1000) NULL,
         [PrescriptionDate] [datetime2](7) NOT NULL DEFAULT GETUTCDATE(),
+        [IsActive] [bit] NOT NULL DEFAULT 1,
         [CreatedBy] [nvarchar](100) NULL,
         [UpdatedBy] [nvarchar](100) NULL,
         [CreatedDate] [datetime2](7) NOT NULL DEFAULT GETUTCDATE(),
@@ -43,6 +44,14 @@ BEGIN
         CONSTRAINT [PK_Prescriptions] PRIMARY KEY CLUSTERED ([Id] ASC),
         CONSTRAINT [FK_Prescriptions_Appointments] FOREIGN KEY ([AppointmentId]) REFERENCES [dbo].[Appointments] ([Id])
     )
+END
+ELSE
+BEGIN
+    -- Add IsActive column if it doesn't exist
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Prescriptions') AND name = 'IsActive')
+    BEGIN
+        ALTER TABLE [dbo].[Prescriptions] ADD [IsActive] [bit] NOT NULL DEFAULT 1;
+    END
 END
 GO
 
@@ -57,6 +66,7 @@ BEGIN
         [StartDate] [datetime2](7) NOT NULL,
         [EndDate] [datetime2](7) NOT NULL,
         [Notes] [nvarchar](1000) NULL,
+        [IsActive] [bit] NOT NULL DEFAULT 1,
         [CreatedBy] [nvarchar](100) NULL,
         [UpdatedBy] [nvarchar](100) NULL,
         [CreatedDate] [datetime2](7) NOT NULL DEFAULT GETUTCDATE(),
@@ -65,6 +75,14 @@ BEGIN
         CONSTRAINT [FK_PrescriptionDetails_Prescriptions] FOREIGN KEY ([PrescriptionId]) REFERENCES [dbo].[Prescriptions] ([Id]) ON DELETE CASCADE,
         CONSTRAINT [FK_PrescriptionDetails_Medicines] FOREIGN KEY ([MedicineId]) REFERENCES [dbo].[Medicines] ([Id])
     )
+END
+ELSE
+BEGIN
+    -- Add IsActive column if it doesn't exist
+    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('PrescriptionDetails') AND name = 'IsActive')
+    BEGIN
+        ALTER TABLE [dbo].[PrescriptionDetails] ADD [IsActive] [bit] NOT NULL DEFAULT 1;
+    END
 END
 GO
 
@@ -347,6 +365,7 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
+    WHERE p.IsActive = 1
     ORDER BY p.PrescriptionDate DESC
     OFFSET @Skip ROWS
     FETCH NEXT @Take ROWS ONLY;
@@ -378,7 +397,7 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
-    WHERE p.Id = @Id;
+    WHERE p.Id = @Id AND p.IsActive = 1;
 END
 GO
 
@@ -405,11 +424,11 @@ BEGIN
         
         INSERT INTO Prescriptions (
             AppointmentId, GeneralNotes, FollowUpInstructions, 
-            CreatedBy, CreatedDate
+            IsActive, CreatedBy, CreatedDate
         )
         VALUES (
             @AppointmentId, @GeneralNotes, @FollowUpInstructions,
-            @CreatedBy, GETUTCDATE()
+            1, @CreatedBy, GETUTCDATE()
         );
         
         SET @Id = SCOPE_IDENTITY();
@@ -446,14 +465,35 @@ BEGIN
 END
 GO
 
--- Delete Prescription
+-- Delete Prescription (Soft Delete)
 CREATE OR ALTER PROCEDURE [dbo].[sp_DeletePrescription]
     @Id INT
 AS
 BEGIN
     SET NOCOUNT ON;
     
-    DELETE FROM Prescriptions WHERE Id = @Id;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Soft delete prescription
+        UPDATE Prescriptions 
+        SET IsActive = 0, UpdatedDate = GETUTCDATE()
+        WHERE Id = @Id;
+        
+        -- Soft delete all prescription details
+        UPDATE PrescriptionDetails 
+        SET IsActive = 0, UpdatedDate = GETUTCDATE()
+        WHERE PrescriptionId = @Id;
+        
+        IF @@ROWCOUNT = 0
+            THROW 50001, 'Prescription not found', 1;
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
 END
 GO
 
@@ -464,7 +504,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    SELECT CASE WHEN EXISTS (SELECT 1 FROM Prescriptions WHERE Id = @Id) THEN 1 ELSE 0 END;
+    SELECT CASE WHEN EXISTS (SELECT 1 FROM Prescriptions WHERE Id = @Id AND IsActive = 1) THEN 1 ELSE 0 END;
 END
 GO
 
@@ -493,7 +533,7 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
-    WHERE p.AppointmentId = @AppointmentId;
+    WHERE p.AppointmentId = @AppointmentId AND p.IsActive = 1;
 END
 GO
 
@@ -523,7 +563,7 @@ BEGIN
         m.Manufacturer AS MedicineManufacturer
     FROM PrescriptionDetails pd
     INNER JOIN Medicines m ON pd.MedicineId = m.Id
-    WHERE pd.PrescriptionId = @PrescriptionId
+    WHERE pd.PrescriptionId = @PrescriptionId AND pd.IsActive = 1
     ORDER BY pd.Id;
 END
 GO
@@ -550,20 +590,20 @@ BEGIN
         m.Manufacturer AS MedicineManufacturer
     FROM PrescriptionDetails pd
     INNER JOIN Medicines m ON pd.MedicineId = m.Id
-    WHERE pd.Id = @Id;
+    WHERE pd.Id = @Id AND pd.IsActive = 1;
 END
 GO
 
 -- Create Prescription Detail
 CREATE OR ALTER PROCEDURE [dbo].[sp_CreatePrescriptionDetail]
+    @Id INT = 0,  -- Made optional with default value 0 for new records
     @PrescriptionId INT,
     @MedicineId INT,
     @Dosage NVARCHAR(200),
     @StartDate DATETIME2,
     @EndDate DATETIME2,
     @Notes NVARCHAR(1000) = NULL,
-    @CreatedBy NVARCHAR(100) = NULL,
-    @Id INT OUTPUT
+    @CreatedBy NVARCHAR(100) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -594,13 +634,14 @@ BEGIN
         
         INSERT INTO PrescriptionDetails (
             PrescriptionId, MedicineId, Dosage, StartDate, EndDate, 
-            Notes, CreatedBy, CreatedDate
+            Notes, IsActive, CreatedBy, CreatedDate
         )
         VALUES (
             @PrescriptionId, @MedicineId, @Dosage, @StartDate, @EndDate,
-            @Notes, @CreatedBy, GETUTCDATE()
+            @Notes, 1, @CreatedBy, GETUTCDATE()
         );
         
+        -- Get the newly created prescription detail ID
         SET @Id = SCOPE_IDENTITY();
         
         COMMIT TRANSACTION;
@@ -659,6 +700,7 @@ BEGIN
             StartDate = @StartDate,
             EndDate = @EndDate,
             Notes = @Notes,
+            IsActive = 1,
             UpdatedBy = @UpdatedBy,
             UpdatedDate = @UpdatedDate
         WHERE Id = @Id;
@@ -672,14 +714,16 @@ BEGIN
 END
 GO
 
--- Delete Prescription Detail
+-- Delete Prescription Detail (Soft Delete)
 CREATE OR ALTER PROCEDURE [dbo].[sp_DeletePrescriptionDetail]
     @Id INT
 AS
 BEGIN
     SET NOCOUNT ON;
     
-    DELETE FROM PrescriptionDetails WHERE Id = @Id;
+    UPDATE PrescriptionDetails 
+    SET IsActive = 0, UpdatedDate = GETUTCDATE()
+    WHERE Id = @Id;
 END
 GO
 
@@ -712,7 +756,7 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
-    WHERE a.PatientId = @PatientId
+    WHERE a.PatientId = @PatientId AND p.IsActive = 1
     ORDER BY p.PrescriptionDate DESC;
 END
 GO
@@ -742,7 +786,7 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
-    WHERE a.DoctorId = @DoctorId
+    WHERE a.DoctorId = @DoctorId AND p.IsActive = 1
     ORDER BY p.PrescriptionDate DESC;
 END
 GO
@@ -773,7 +817,7 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
-    WHERE CAST(p.PrescriptionDate AS DATE) BETWEEN @StartDate AND @EndDate
+    WHERE CAST(p.PrescriptionDate AS DATE) BETWEEN @StartDate AND @EndDate AND p.IsActive = 1
     ORDER BY p.PrescriptionDate DESC;
 END
 GO
@@ -803,11 +847,12 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
-    WHERE 
+    WHERE p.IsActive = 1 AND (
         CONCAT(pat.FirstName, ' ', pat.LastName) LIKE '%' + @SearchTerm + '%'
         OR CONCAT(d.FirstName, ' ', d.LastName) LIKE '%' + @SearchTerm + '%'
         OR p.GeneralNotes LIKE '%' + @SearchTerm + '%'
         OR p.FollowUpInstructions LIKE '%' + @SearchTerm + '%'
+    )
     ORDER BY p.PrescriptionDate DESC;
 END
 GO
@@ -822,7 +867,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    SELECT COUNT(*) FROM Prescriptions;
+    SELECT COUNT(*) FROM Prescriptions WHERE IsActive = 1;
 END
 GO
 
@@ -836,7 +881,7 @@ BEGIN
     SELECT COUNT(*) 
     FROM Prescriptions p
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
-    WHERE a.PatientId = @PatientId;
+    WHERE a.PatientId = @PatientId AND p.IsActive = 1;
 END
 GO
 
@@ -850,7 +895,7 @@ BEGIN
     SELECT COUNT(*) 
     FROM Prescriptions p
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
-    WHERE a.DoctorId = @DoctorId;
+    WHERE a.DoctorId = @DoctorId AND p.IsActive = 1;
 END
 GO
 
@@ -864,7 +909,7 @@ BEGIN
     
     SELECT COUNT(*) 
     FROM Prescriptions 
-    WHERE CAST(PrescriptionDate AS DATE) BETWEEN @StartDate AND @EndDate;
+    WHERE CAST(PrescriptionDate AS DATE) BETWEEN @StartDate AND @EndDate AND IsActive = 1;
 END
 GO
 
@@ -880,11 +925,12 @@ BEGIN
     INNER JOIN Appointments a ON p.AppointmentId = a.Id
     INNER JOIN Patients pat ON a.PatientId = pat.Id
     INNER JOIN Doctors d ON a.DoctorId = d.Id
-    WHERE 
+    WHERE p.IsActive = 1 AND (
         CONCAT(pat.FirstName, ' ', pat.LastName) LIKE '%' + @SearchTerm + '%'
         OR CONCAT(d.FirstName, ' ', d.LastName) LIKE '%' + @SearchTerm + '%'
         OR p.GeneralNotes LIKE '%' + @SearchTerm + '%'
-        OR p.FollowUpInstructions LIKE '%' + @SearchTerm + '%';
+        OR p.FollowUpInstructions LIKE '%' + @SearchTerm + '%'
+    );
 END
 GO
 

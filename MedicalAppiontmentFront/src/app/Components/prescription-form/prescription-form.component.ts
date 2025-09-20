@@ -45,6 +45,15 @@ export class PrescriptionFormComponent implements OnInit {
   ngOnInit(): void {
     this.commonService.formHeaderName = this.isEditMode ? 'Edit Prescription' : 'Add Prescription';
     
+    console.log('Form initialized:', this.prescriptionForm);
+    console.log('Initial prescription details array:', this.prescriptionDetailsArray);
+    
+    // Ensure form array is properly initialized
+    if (!this.prescriptionDetailsArray) {
+      console.error('Form array is not properly initialized!');
+      return;
+    }
+    
     // Load initial data
     this.loadAppointments();
     this.loadMedicines();
@@ -68,9 +77,9 @@ export class PrescriptionFormComponent implements OnInit {
 
   createForm(): FormGroup {
     return this.fb.group({
-      appointmentId: ['', [Validators.required]],
-      generalNotes: ['', [Validators.maxLength(1000)]],
-      followUpInstructions: ['', [Validators.maxLength(1000)]],
+      appointmentId: [''],
+      generalNotes: [''],
+      followUpInstructions: [''],
       prescriptionDetails: this.fb.array([])
     });
   }
@@ -81,11 +90,11 @@ export class PrescriptionFormComponent implements OnInit {
 
   createPrescriptionDetailForm(): FormGroup {
     return this.fb.group({
-      medicineId: ['', [Validators.required]],
-      dosage: ['', [Validators.required, Validators.maxLength(200)]],
-      startDate: ['', [Validators.required]],
-      endDate: ['', [Validators.required]],
-      notes: ['', [Validators.maxLength(1000)]]
+      medicineId: [''],
+      dosage: [''],
+      startDate: [''],
+      endDate: [''],
+      notes: ['']
     });
   }
 
@@ -173,15 +182,50 @@ export class PrescriptionFormComponent implements OnInit {
 
   loadPrescriptionData(): void {
     if (this.prescriptionId) {
+      console.log('Loading prescription data for ID:', this.prescriptionId);
       this.isLoading = true;
+      
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (this.isLoading) {
+          console.warn('Prescription data loading timeout, forcing completion');
+          this.isLoading = false;
+          this.populateForm({ prescriptionDetails: [] });
+        }
+      }, 10000); // 10 second timeout
+      
+      // Load prescription and prescription details in parallel
       this.prescriptionService.getPrescriptionById(this.prescriptionId).subscribe({
         next: (response: any) => {
-          this.isLoading = false;
-          if (response) {
-            this.populateForm(response);
+          clearTimeout(timeout);
+          console.log('Prescription API response:', response);
+          
+          // Handle different response structures
+          let prescriptionData = response;
+          if (response && response.data) {
+            prescriptionData = response.data;
+          }
+          
+          if (prescriptionData) {
+            console.log('Prescription data to populate:', prescriptionData);
+            
+            // Load prescription details separately if not included
+            if (!prescriptionData.prescriptionDetails || prescriptionData.prescriptionDetails.length === 0) {
+              console.log('No prescription details in main response, loading separately...');
+              this.loadPrescriptionDetails(this.prescriptionId!, prescriptionData);
+            } else {
+              console.log('Prescription details found:', prescriptionData.prescriptionDetails);
+              this.isLoading = false;
+              this.populateForm(prescriptionData);
+            }
+          } else {
+            console.error('No prescription data found in response');
+            this.isLoading = false;
+            Swal.fire('Error', 'No prescription data found', 'error');
           }
         },
         error: (error) => {
+          clearTimeout(timeout);
           this.isLoading = false;
           console.error('Error loading prescription data:', error);
           Swal.fire('Error', 'Failed to load prescription data', 'error');
@@ -190,12 +234,51 @@ export class PrescriptionFormComponent implements OnInit {
     }
   }
 
+  loadPrescriptionDetails(prescriptionId: number, prescriptionData: any): void {
+    console.log('Loading prescription details for prescription ID:', prescriptionId);
+    this.prescriptionService.getPrescriptionDetailsByPrescriptionId(prescriptionId).subscribe({
+      next: (detailsResponse: any) => {
+        console.log('Prescription details API response:', detailsResponse);
+        this.isLoading = false;
+        
+        // Handle different response structures
+        let details = detailsResponse;
+        if (detailsResponse && detailsResponse.data) {
+          details = detailsResponse.data;
+        }
+        
+        if (details && Array.isArray(details)) {
+          prescriptionData.prescriptionDetails = details;
+          console.log('Prescription details loaded:', details.length, 'items');
+          this.populateForm(prescriptionData);
+        } else {
+          console.log('No prescription details found, using empty array');
+          prescriptionData.prescriptionDetails = [];
+          this.populateForm(prescriptionData);
+        }
+      },
+      error: (error) => {
+        console.error('Error loading prescription details:', error);
+        console.log('Prescription details API might not exist, proceeding without details');
+        this.isLoading = false;
+        // Still populate the form without details
+        prescriptionData.prescriptionDetails = [];
+        this.populateForm(prescriptionData);
+      }
+    });
+  }
+
   populateForm(prescription: any): void {
+    console.log('Populating form with prescription:', prescription);
+    
+    // Populate main form fields
     this.prescriptionForm.patchValue({
       appointmentId: prescription.appointmentId,
       generalNotes: prescription.generalNotes,
       followUpInstructions: prescription.followUpInstructions
     });
+
+    console.log('Main form populated. Appointment ID:', prescription.appointmentId);
 
     // Clear existing prescription details
     while (this.prescriptionDetailsArray.length !== 0) {
@@ -204,16 +287,46 @@ export class PrescriptionFormComponent implements OnInit {
 
     // Add prescription details
     if (prescription.prescriptionDetails && prescription.prescriptionDetails.length > 0) {
-      prescription.prescriptionDetails.forEach((detail: any) => {
+      console.log('Adding prescription details:', prescription.prescriptionDetails.length, 'items');
+      prescription.prescriptionDetails.forEach((detail: any, index: number) => {
+        console.log(`Adding detail ${index}:`, detail);
         this.addPrescriptionDetail(detail);
       });
+    } else {
+      console.log('No prescription details found, adding empty detail');
+      // Add at least one empty detail for editing
+      this.addPrescriptionDetail();
     }
+    
+    console.log('Form populated. Form array length:', this.prescriptionDetailsArray.length);
+    
+    // Force change detection to ensure form controls are properly bound
+    setTimeout(() => {
+      console.log('Triggering change detection after form population');
+      this.prescriptionForm.updateValueAndValidity();
+    }, 0);
   }
 
   addPrescriptionDetail(existingDetail?: any): void {
+    console.log('Adding prescription detail:', existingDetail);
+    
+    // Ensure form array exists
+    if (!this.prescriptionDetailsArray) {
+      console.error('Form array is not initialized!');
+      return;
+    }
+    
     const detailForm = this.createPrescriptionDetailForm();
     
     if (existingDetail) {
+      console.log('Patching existing detail values:', {
+        medicineId: existingDetail.medicineId,
+        dosage: existingDetail.dosage,
+        startDate: existingDetail.startDate,
+        endDate: existingDetail.endDate,
+        notes: existingDetail.notes
+      });
+      
       detailForm.patchValue({
         medicineId: existingDetail.medicineId,
         dosage: existingDetail.dosage,
@@ -221,31 +334,82 @@ export class PrescriptionFormComponent implements OnInit {
         endDate: existingDetail.endDate ? new Date(existingDetail.endDate).toISOString().split('T')[0] : '',
         notes: existingDetail.notes
       });
+      
+      console.log('Detail form patched with values:', detailForm.value);
     }
 
     this.prescriptionDetailsArray.push(detailForm);
+    console.log('Detail added to form array. New length:', this.prescriptionDetailsArray.length);
+    
+    // Force form array update
+    this.prescriptionDetailsArray.updateValueAndValidity();
   }
 
   removePrescriptionDetail(index: number): void {
     this.prescriptionDetailsArray.removeAt(index);
   }
 
+
+  trackByIndex(index: number, item: any): number {
+    return index;
+  }
+
+  isFormArrayReady(): boolean {
+    return this.prescriptionDetailsArray && this.prescriptionDetailsArray.length > 0;
+  }
+
+
   onSubmit(): void {
-    if (this.prescriptionForm.valid && !this.isSubmitting) {
+    console.log('Form submitted!');
+    console.log('Is submitting:', this.isSubmitting);
+    console.log('Is edit mode:', this.isEditMode);
+    console.log('Prescription ID:', this.prescriptionId);
+    
+    if (!this.isSubmitting) {
       this.isSubmitting = true;
       
+      // Force update all form controls before getting values
+      this.syncFormValues();
+      
       const formData = this.prescriptionForm.value;
+      console.log('Form data:', formData);
+      
+      // Check if any medicine details have been filled
+      const hasValidMedicineDetails = formData.prescriptionDetails.some((detail: any) => 
+        detail.medicineId && detail.medicineId !== '' && 
+        detail.dosage && detail.dosage !== '' &&
+        detail.startDate && detail.startDate !== '' &&
+        detail.endDate && detail.endDate !== ''
+      );
+      
+      if (!hasValidMedicineDetails) {
+        this.isSubmitting = false;
+        Swal.fire('Error', 'Please fill in at least one complete medicine detail (medicine, dosage, start date, and end date)', 'error');
+        return;
+      }
+      
+      // Filter out empty medicine details
+      const validPrescriptionDetails = formData.prescriptionDetails.filter((detail: any) => 
+        detail.medicineId && detail.medicineId !== '' && 
+        detail.dosage && detail.dosage !== '' &&
+        detail.startDate && detail.startDate !== '' &&
+        detail.endDate && detail.endDate !== ''
+      );
       
       // Convert prescription details
-      const prescriptionDetails = formData.prescriptionDetails.map((detail: any) => ({
+      const prescriptionDetails = validPrescriptionDetails.map((detail: any) => ({
+        id: 0, // New prescription detail ID
         medicineId: detail.medicineId,
         dosage: detail.dosage,
         startDate: new Date(detail.startDate).toISOString(),
         endDate: new Date(detail.endDate).toISOString(),
-        notes: detail.notes
+        notes: detail.notes || ''
       }));
+      
+      console.log('Valid prescription details:', prescriptionDetails);
 
       if (this.isEditMode && this.prescriptionId) {
+        console.log('Updating prescription...');
         const updateData: PrescriptionUpdate = {
           id: this.prescriptionId,
           appointmentId: formData.appointmentId,
@@ -262,24 +426,36 @@ export class PrescriptionFormComponent implements OnInit {
             isDeleted: false
           }))
         };
+        console.log('Update data:', updateData);
         this.updatePrescription(updateData);
       } else {
+        console.log('Creating prescription...');
         const createData: PrescriptionCreate = {
           appointmentId: formData.appointmentId,
           generalNotes: formData.generalNotes,
           followUpInstructions: formData.followUpInstructions,
           prescriptionDetails: prescriptionDetails
         };
+        console.log('Create data:', createData);
         this.createPrescription(createData);
       }
     } else {
-      this.markFormGroupTouched();
+      console.log('Already submitting, ignoring...');
     }
   }
 
   createPrescription(prescriptionData: PrescriptionCreate): void {
+    console.log('Calling createPrescription API with data:', prescriptionData);
+    console.log('Prescription details being sent:', prescriptionData.prescriptionDetails);
+    
+    // Log each prescription detail individually
+    prescriptionData.prescriptionDetails.forEach((detail, index) => {
+      console.log(`Prescription detail ${index}:`, detail);
+    });
+    
     this.prescriptionService.createPrescription(prescriptionData).subscribe({
       next: (response: any) => {
+        console.log('Create prescription API response:', response);
         this.isSubmitting = false;
         Swal.fire({
           title: 'Success!',
@@ -291,8 +467,9 @@ export class PrescriptionFormComponent implements OnInit {
         });
       },
       error: (error) => {
-        this.isSubmitting = false;
         console.error('Error creating prescription:', error);
+        console.error('Error details:', error.error);
+        this.isSubmitting = false;
         const errorMessage = error.error?.message || 'Failed to create prescription';
         Swal.fire('Error', errorMessage, 'error');
       }
@@ -300,8 +477,10 @@ export class PrescriptionFormComponent implements OnInit {
   }
 
   updatePrescription(prescriptionData: PrescriptionUpdate): void {
+    console.log('Calling updatePrescription API with data:', prescriptionData);
     this.prescriptionService.updatePrescription(this.prescriptionId!, prescriptionData).subscribe({
       next: (response: any) => {
+        console.log('Update prescription API response:', response);
         this.isSubmitting = false;
         Swal.fire({
           title: 'Success!',
@@ -313,8 +492,8 @@ export class PrescriptionFormComponent implements OnInit {
         });
       },
       error: (error) => {
-        this.isSubmitting = false;
         console.error('Error updating prescription:', error);
+        this.isSubmitting = false;
         const errorMessage = error.error?.message || 'Failed to update prescription';
         Swal.fire('Error', errorMessage, 'error');
       }
@@ -325,67 +504,69 @@ export class PrescriptionFormComponent implements OnInit {
     this.router.navigate(['/prescriptions']);
   }
 
-  markFormGroupTouched(): void {
-    Object.keys(this.prescriptionForm.controls).forEach(key => {
-      const control = this.prescriptionForm.get(key);
-      control?.markAsTouched();
+  testFormSubmission(): void {
+    console.log('Test form submission clicked!');
+    console.log('Form valid:', this.prescriptionForm.valid);
+    console.log('Form value:', this.prescriptionForm.value);
+    console.log('Prescription details array length:', this.prescriptionDetailsArray.length);
+    console.log('Is submitting:', this.isSubmitting);
+    
+    // Test the form submission
+    this.onSubmit();
+  }
+
+  onMedicineSelectionChange(event: any, index: number): void {
+    debugger;
+    const selectedMedicineId = event.target.value;
+    console.log(`Medicine selection changed for index ${index}:`, selectedMedicineId);
+    console.log('Available medicines:', this.medicines);
+    console.log('Selected medicine:', this.medicines.find(m => m.id == selectedMedicineId));
+    
+    // Update the form control value
+    const control = this.prescriptionDetailsArray.at(index)?.get('medicineId');
+    if (control) {
+      control.setValue(selectedMedicineId);
+      console.log('Updated control value:', control.value);
+    }
+  }
+
+  onFieldChange(fieldName: string, index: number, event: any): void {
+    const value = event.target.value;
+    console.log(`Field ${fieldName} changed for index ${index}:`, value);
+    
+    // Update the form control value
+    const control = this.prescriptionDetailsArray.at(index)?.get(fieldName);
+    if (control) {
+      control.setValue(value);
+      console.log(`Updated ${fieldName} control value:`, control.value);
       
-      if (key === 'prescriptionDetails') {
-        const prescriptionDetailsArray = control as FormArray;
-        prescriptionDetailsArray.controls.forEach(detailControl => {
-          Object.keys(detailControl.value).forEach(detailKey => {
-            detailControl.get(detailKey)?.markAsTouched();
-          });
-        });
-      }
+      // Also update the form array to trigger change detection
+      this.prescriptionDetailsArray.updateValueAndValidity();
+    }
+  }
+
+  syncFormValues(): void {
+    console.log('Syncing form values...');
+    
+    // Force update all prescription detail controls
+    this.prescriptionDetailsArray.controls.forEach((control, index) => {
+      console.log(`Syncing control at index ${index}:`, control.value);
+      
+      // Mark all controls as touched to ensure they're updated
+      Object.keys(control.value).forEach(key => {
+        const fieldControl = control.get(key);
+        if (fieldControl) {
+          fieldControl.markAsTouched();
+          fieldControl.updateValueAndValidity();
+        }
+      });
     });
+    
+    // Update the entire form
+    this.prescriptionForm.updateValueAndValidity();
+    console.log('Form values synced. Current form value:', this.prescriptionForm.value);
   }
 
-  getErrorMessage(fieldName: string, index?: number): string {
-    let control: any;
-    
-    if (index !== undefined) {
-      control = this.prescriptionDetailsArray.at(index)?.get(fieldName);
-    } else {
-      control = this.prescriptionForm.get(fieldName);
-    }
-    
-    if (control?.errors && control.touched) {
-      if (control.errors['required']) {
-        return `${this.getFieldLabel(fieldName)} is required`;
-      }
-      if (control.errors['maxlength']) {
-        return `${this.getFieldLabel(fieldName)} must not exceed ${control.errors['maxlength'].requiredLength} characters`;
-      }
-    }
-    return '';
-  }
-
-  getFieldLabel(fieldName: string): string {
-    const labels: { [key: string]: string } = {
-      appointmentId: 'Appointment',
-      generalNotes: 'General Notes',
-      followUpInstructions: 'Follow-up Instructions',
-      medicineId: 'Medicine',
-      dosage: 'Dosage',
-      startDate: 'Start Date',
-      endDate: 'End Date',
-      notes: 'Notes'
-    };
-    return labels[fieldName] || fieldName;
-  }
-
-  isFieldInvalid(fieldName: string, index?: number): boolean {
-    let control: any;
-    
-    if (index !== undefined) {
-      control = this.prescriptionDetailsArray.at(index)?.get(fieldName);
-    } else {
-      control = this.prescriptionForm.get(fieldName);
-    }
-    
-    return !!(control?.invalid && control.touched);
-  }
 
   getAppointmentDisplayText(appointmentId: number): string {
     const appointment = this.appointments.find(a => a.id === appointmentId);
@@ -421,12 +602,6 @@ export class PrescriptionFormComponent implements OnInit {
   }
 
   generatePreviewReport(): void {
-    if (this.prescriptionForm.invalid) {
-      this.markFormGroupTouched();
-      Swal.fire('Error', 'Please fill in all required fields before generating the report', 'error');
-      return;
-    }
-
     if (this.prescriptionDetailsArray.length === 0) {
       Swal.fire('Error', 'Please add at least one medicine before generating the report', 'error');
       return;
@@ -459,5 +634,6 @@ export class PrescriptionFormComponent implements OnInit {
 
     this.prescriptionReportService.generatePrescriptionReportFromPrescription(previewPrescription);
   }
+
 }
 
